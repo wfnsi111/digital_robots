@@ -46,7 +46,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
 
     messages = request.messages
 
-    if request.digital_role != 'General Robot':
+    if request.digital_role not in ('General Robot', 'RPA Robot'):
         get_knowledge_info(messages, request.k, request.digital_role)
 
         # 保留10条聊天记录

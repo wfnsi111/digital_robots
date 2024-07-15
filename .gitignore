@@ -164,6 +164,7 @@ cython_debug/
 # =========================================================================
 # add ignore file
 /test/
+/db_chroma/
 /docs/*
 
 gunicorn.py

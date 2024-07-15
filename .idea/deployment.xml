@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" serverName="3.56" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="3.56">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/work/chatglm3-2/digital_robots" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/.idea" />
+            <excludedPath local="true" path="$PROJECT_DIR$/.venv" />
+            <excludedPath local="true" path="$PROJECT_DIR$/test" />
+            <excludedPath local="true" path="$PROJECT_DIR$/mylog" />
+            <excludedPath local="true" path="$PROJECT_DIR$/static" />
+            <excludedPath local="true" path="$PROJECT_DIR$/main_token.py" />
+            <excludedPath local="true" path="$PROJECT_DIR$/docs" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

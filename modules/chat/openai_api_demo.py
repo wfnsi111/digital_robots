@@ -6,10 +6,15 @@ from loguru import logger
 import requests
 from tool_register import get_tools, dispatch_tool
 
+from fastapi import Depends
+from sqlalchemy.orm import Session
+from crud import chat_crud
+from db_mysql.session import get_db
+
 init(autoreset=True)
 client = OpenAI(
     # base_url="http://127.0.0.1:8000/v1",
-    base_url="http://192.168.3.56:8888/v1/api",
+    base_url="http://192.168.1.56:8888/v1/api",
     api_key="xxx"
 )
 
@@ -21,6 +26,7 @@ def post_api(params):
     if response.status_code == 200:
         return response.content
     raise
+
 
 def run_conversation(query: str, stream=False, tools=None, max_retry=5):
     params = dict(model="chatglm3", messages=[{"role": "user", "content": query}], stream=stream)
@@ -92,6 +98,18 @@ def run_conversation(query: str, stream=False, tools=None, max_retry=5):
         response = client.chat.completions.create(**params)
 
 
+def get_tools_info(db: Session = Depends(get_db)):
+    user_id = 1
+    skills = chat_crud.list_skill(db, user_id)
+    skill_dict = {}
+    for skill in skills:
+        skill_dict[skill.skill.skill_name] = {
+            "name": skill.skill_name,  # 函数名字
+            "description": skill.description,  # 函数描述：大模型通过函数的描述，来选择是否调用函数
+            "parameters": json.loads(skill.params)
+        }
+
+
 if __name__ == "__main__":
     query = "你是谁"
     # run_conversation(query, stream=True)
@@ -99,4 +117,5 @@ if __name__ == "__main__":
     logger.info("\n=========== next conversation ===========")
 
     query = "成都的天气如何"
-    run_conversation(query, tools=tools, stream=False)
+    # run_conversation(query, tools=tools, stream=False)
+    get_tools_info()
