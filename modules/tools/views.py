@@ -8,9 +8,8 @@ from .schema_models import *
 import json
 import traceback
 from openai import OpenAI
-from colorama import init, Fore
+from colorama import init
 from loguru import logger
-from .tool_register import dispatch_tool, get_tools
 
 router = APIRouter()
 
