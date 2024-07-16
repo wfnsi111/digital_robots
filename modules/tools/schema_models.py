@@ -12,3 +12,9 @@ class ChatCompletionRequest(BaseModel):
     user_id: int = 1
     query: str
     digital_role: Optional[str] = 'RPA Robot'
+
+
+class IdentifyToolResponse(BaseModel):
+    skill_name: str
+    skill_args: dict
+    skill_id: str

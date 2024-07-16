@@ -6,10 +6,11 @@ from loguru import logger
 import requests
 from tool_register import get_tools, dispatch_tool
 
+base_url = "http://192.168.1.56:8888/v1/api"
 init(autoreset=True)
 client = OpenAI(
     # base_url="http://127.0.0.1:8000/v1",
-    base_url="http://192.168.1.56:8888/v1/api",
+    base_url=base_url,
     api_key="xxx"
 )
 
@@ -17,9 +18,9 @@ tools = get_tools()
 
 
 def post_api(params):
-    response = requests.post("http://192.168.3.56:8888/v1/api/chat/completions", json=params)
+    response = requests.post(f"{base_url}/chat/completions", json=params)
     if response.status_code == 200:
-        return response.content
+        return response.content.decode("utf-8")
     raise
 
 
@@ -27,8 +28,8 @@ def run_conversation(messages: list, stream=False, tools=None, max_retry=5):
     params = dict(model="chatglm3", messages=messages, stream=stream)
     if tools:
         params["tools"] = tools
-    response = client.chat.completions.create(**params)
-    # response = post_api(params)
+    # response = client.chat.completions.create(**params)
+    response = post_api(params)
 
     for _ in range(max_retry):
         if not stream:

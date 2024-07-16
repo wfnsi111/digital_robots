@@ -10,13 +10,14 @@ import traceback
 from openai import OpenAI
 from colorama import init
 from loguru import logger
+import requests
 
 router = APIRouter()
 
+base_url = "http://192.168.1.56:8888/v1/api"
 init(autoreset=True)
 client = OpenAI(
-    # base_url="http://127.0.0.1:8000/v1",
-    base_url="http://192.168.1.56:8888/v1/api",
+    base_url=base_url,
     api_key="xxx"
 )
 
@@ -26,6 +27,7 @@ eval_tool = {}
 
 
 def get_tools_info(user_id, db: Session = Depends(get_db)):
+    # 获取工具信息
     skills = tools_crud.list_skill(db, user_id)
     skill_dict = {}
     if skills is not None:
@@ -34,7 +36,8 @@ def get_tools_info(user_id, db: Session = Depends(get_db)):
                 skill_dict[skill.skill_name] = {
                     "name": skill.skill_name,  # 函数名字
                     "description": skill.description,  # 函数描述：大模型通过函数的描述，来选择是否调用函数
-                    "parameters": json.loads(skill.params)
+                    "parameters": json.loads(skill.params),  # 函数参数
+                    "skill_id": skill.skill_id,  # 函数id
                 }
             except Exception as e:
                 continue
@@ -51,23 +54,36 @@ def cum_dispatch_tool(user_id, tools, function_name, function_args):
             raise KeyError(f"RPA动作为【{function_name}】需要一个{param_name}({param_info['description']})的参数")
 
     eval_tool[user_id] = {
-        "function_name": function_name,
-        "function_args": function_args
+        "skill_name": function_name,
+        "skill_args": function_args,
+        "skill_id": tools_info['skill_id'],
     }
     s = f"""
     请确认你要执行RPA动作为【{function_name}】:
     参数为：
     {function_args}
-
     """
     return s
+
+
+def post_api(params):
+    response = requests.post(f"{base_url}/chat/completions", json=params)
+    if response.status_code == 200:
+        return response.content.decode("utf-8")
+    raise
 
 
 def run_conversation(user_id, **params):
     max_retry = 5
     stream = params['stream']
+    print("执行completions.create")
+    for k, v in params.items():
+        print(f'{k}: {v}')
+    # return
     response = client.chat.completions.create(**params)
     # response = post_api(params)
+    print(response)
+    print("执行完completions.create")
 
     for _ in range(max_retry):
         if not stream:
@@ -108,7 +124,7 @@ def run_conversation(user_id, **params):
                         "content": response.choices[0].message.content,  # 调用函数返回结果
                     }
                 )
-                return params["messages"]
+                return reply
 
 
 @router.post("/completions2", summary="工具对话")
@@ -117,7 +133,7 @@ async def completions2(request: ChatCompletionRequest, db: Session = Depends(get
     digital_role = request.digital_role
     tools = get_tools_info(user_id, db)
     # tools = get_tools()
-    model = "chatglm3"
+    model = "chatglm3-6b"
     stream = False
     query = request.query
     messages_list = messages_history.get(user_id, [])
@@ -139,16 +155,18 @@ async def completions2(request: ChatCompletionRequest, db: Session = Depends(get
         messages_history[user_id] = messages_list
 
     chat_message = {"role": "user", "content": query}
+    # 对话历史记录
     messages_list.append(chat_message)
-    params = dict(model=model, messages=messages_list, stream=stream, dialogue=digital_role)
+    params = dict(model=model, messages=messages_list, stream=stream)
     if tools:
         params["tools"] = tools
 
+    # 调用工具，获取对话返回值
     reply = run_conversation(user_id, **params)
     return reply
 
 
-@router.get("/identify", summary="确认参数")
+@router.get("/identify", response_model=IdentifyToolResponse, summary="确认参数")
 def identify_tool(user_id: int = 1):
     tool_params = eval_tool.get(user_id)
     return tool_params
