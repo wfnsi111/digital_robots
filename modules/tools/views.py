@@ -7,11 +7,10 @@ from db_mysql.session import get_db
 from .schema_models import *
 import json
 import traceback
-from openai import  AsyncOpenAI
+from openai import AsyncOpenAI
 from colorama import init
 from loguru import logger
 import requests
-
 
 router = APIRouter()
 
@@ -142,14 +141,16 @@ async def completions2(request: ChatCompletionRequest, db: Session = Depends(get
         messages_list = []
 
     if not messages_list:
+        descriptions = [skill['description'] for skill in tools.values()]
+        descriptions_str = '【' + '】，【'.join(descriptions) + '】'
         system_chat = [
             {
                 "role": "system",
-                "content": '你是一个RPA机器人，调用RPA工具执行任务，请牢记。目前的RPA工具有：【发送邮件】，【打开网页】'
+                "content": f'你是一个RPA机器人，调用RPA工具执行任务，请牢记。目前的RPA工具有：{descriptions_str}'
             },
             {
                 "role": "user",
-                "content": '所有信息，必须从role为user的角色中提取。不能胡乱编造。'
+                "content": '所有信息，必须从对话中提取。不能胡乱编造。'
             },
         ]
         messages_list.extend(system_chat)
@@ -171,4 +172,3 @@ async def completions2(request: ChatCompletionRequest, db: Session = Depends(get
 def identify_tool(user_id: int = 1):
     tool_params = eval_tool.get(user_id)
     return tool_params
-
