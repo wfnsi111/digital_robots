@@ -1,22 +1,23 @@
 import sys
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .crud import tools_crud
 from db_mysql.session import get_db
 from .schema_models import *
 import json
 import traceback
-from openai import OpenAI
+from openai import  AsyncOpenAI
 from colorama import init
 from loguru import logger
 import requests
+
 
 router = APIRouter()
 
 base_url = "http://192.168.1.56:8888/v1/api"
 init(autoreset=True)
-client = OpenAI(
+client = AsyncOpenAI(
     base_url=base_url,
     api_key="xxx"
 )
@@ -73,14 +74,14 @@ def post_api(params):
     raise
 
 
-def run_conversation(user_id, **params):
+async def run_conversation(user_id, **params):
     max_retry = 5
     stream = params['stream']
     print("执行completions.create")
     for k, v in params.items():
         print(f'{k}: {v}')
     # return
-    response = client.chat.completions.create(**params)
+    response = await client.chat.completions.create(**params)
     # response = post_api(params)
     print(response)
     print("执行完completions.create")
@@ -121,7 +122,7 @@ def run_conversation(user_id, **params):
                 params["messages"].append(
                     {
                         "role": response.choices[0].message.role,
-                        "content": response.choices[0].message.content,  # 调用函数返回结果
+                        "content": reply,  # 调用函数返回结果
                     }
                 )
                 return reply
@@ -162,7 +163,7 @@ async def completions2(request: ChatCompletionRequest, db: Session = Depends(get
         params["tools"] = tools
 
     # 调用工具，获取对话返回值
-    reply = run_conversation(user_id, **params)
+    reply = await run_conversation(user_id, **params)
     return reply
 
 
@@ -170,3 +171,4 @@ async def completions2(request: ChatCompletionRequest, db: Session = Depends(get
 def identify_tool(user_id: int = 1):
     tool_params = eval_tool.get(user_id)
     return tool_params
+

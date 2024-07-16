@@ -24,7 +24,6 @@ timm>=0.9.16
 tiktoken>=0.6.0
 
 # for langchain demo
-
 langchain>=0.2.1
 langchain_community>=0.2.0
 langchainhub>=0.1.15
@@ -35,4 +34,4 @@ SQLAlchemy== 1.4.52
 sqlacodegen
 pymysql==1.1.1
 
-
+httpx
