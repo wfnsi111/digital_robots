@@ -34,4 +34,4 @@ SQLAlchemy== 1.4.52
 sqlacodegen
 pymysql==1.1.1
 
-httpx
+
