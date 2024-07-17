@@ -167,7 +167,7 @@ cython_debug/
 /db_chroma/
 /docs/*
 
-gunicorn.py
+gunicorn_conf.py
 gunicorn.pid
 
 *.sh

@@ -13,7 +13,7 @@ import requests
 
 router = APIRouter()
 
-from gunicorn import bind
+from gunicorn_conf import bind
 
 base_url = f"http://{bind}/v1/api"
 
