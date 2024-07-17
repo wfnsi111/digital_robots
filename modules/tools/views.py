@@ -76,14 +76,8 @@ def post_api(params):
 async def run_conversation(user_id, **params):
     max_retry = 5
     stream = params['stream']
-    print("执行completions.create")
-    for k, v in params.items():
-        print(f'{k}: {v}')
-    # return
     response = await client.chat.completions.create(**params)
     # response = post_api(params)
-    print(response)
-    print("执行完completions.create")
 
     for _ in range(max_retry):
         if not stream:
