@@ -8,6 +8,8 @@ from .schema_models import *
 from .. import knowledge_func
 import os
 
+from mylog.log import logger
+
 router = APIRouter()
 
 
@@ -66,7 +68,7 @@ async def upload_documents(digital_role: str = Form(), files: List[UploadFile] =
 
         return AddDocumentsResponse(result='ok')
     except Exception as e:
-        print(e)
+        logger.error(e)
         return AddDocumentsResponse(result='error')
 
 

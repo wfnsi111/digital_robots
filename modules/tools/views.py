@@ -1,20 +1,22 @@
-import sys
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .crud import tools_crud
 from db_mysql.session import get_db
 from .schema_models import *
-import json
-import traceback
 from openai import AsyncOpenAI
 from colorama import init
-from loguru import logger
+from mylog.log import logger
+
+import json
+import traceback
 import requests
 
 router = APIRouter()
 
-base_url = "http://192.168.1.56:8888/v1/api"
+from gunicorn import bind
+
+base_url = f"http://{bind}/v1/api"
+
 init(autoreset=True)
 client = AsyncOpenAI(
     base_url=base_url,
@@ -40,6 +42,7 @@ def get_tools_info(user_id, db: Session = Depends(get_db)):
                     "skill_id": skill.skill_id,  # 函数id
                 }
             except Exception as e:
+                logger.error(e)
                 continue
     # return json.dumps(skill_dict)
     return skill_dict
@@ -83,19 +86,20 @@ async def run_conversation(user_id, **params):
         if not stream:
             if response.choices[0].message.function_call:
                 function_call = response.choices[0].message.function_call
-                logger.info(f"Function Call Response: {function_call.model_dump()}")
+                print(f"Function Call Response: {function_call.model_dump()}")
 
                 function_args = json.loads(function_call.arguments)
                 # tool_response = dispatch_tool(function_call.name, function_args)
                 try:
                     has_exception = False
                     tool_response = cum_dispatch_tool(user_id, params['tools'], function_call.name, function_args)
-                except:
+                except Exception as e:
+                    logger.error(e)
                     has_exception = True
                     ret = traceback.format_exc()
                     tool_response = str(ret)
 
-                logger.info(f"Tool Call Response: {tool_response}")
+                print(f"Tool Call Response: {tool_response}")
 
                 params["messages"].append(response.choices[0].message)
                 params["messages"].append(
@@ -111,7 +115,7 @@ async def run_conversation(user_id, **params):
                 return tool_response
             else:
                 reply = response.choices[0].message.content
-                logger.info(f"Final Reply: \n{reply}")
+                print(f"Final Reply: \n{reply}")
                 params["messages"].append(
                     {
                         "role": response.choices[0].message.role,
