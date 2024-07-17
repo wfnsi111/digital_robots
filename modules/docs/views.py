@@ -72,7 +72,7 @@ async def upload_documents(digital_role: str = Form(), files: List[UploadFile] =
         return AddDocumentsResponse(result='error')
 
 
-@router.get("/query", summary="查询内容")
+@router.post("/query", summary="查询内容")
 async def query_documents(request: QueryDocumentsRequest):
     prompt = request.prompt
     k = request.k
