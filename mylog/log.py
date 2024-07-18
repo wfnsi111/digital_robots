@@ -1,6 +1,7 @@
 import os
 import logging
 from logging import handlers
+from config.config import basedir
 
 LOGGING_FMT = '[%(asctime)s]-%(pathname)s-[line:%(lineno)d]-%(levelname)s: %(message)s'
 
@@ -8,7 +9,7 @@ LOGGING_BACKUP_COUNT = 15
 LOGGING_INTERVAL = 1
 LOGGING_WHEN = 'MIDNIGHT'
 LOGGING_NAME = 'robot.log'
-LOGGING_DIR = 'log_robot'
+LOGGING_DIR = os.path.join(basedir, 'mylog', 'robot')
 LOGGING_SUFFIX = '%Y-%m-%d.log'
 LOGGING_LEVEL = logging.DEBUG
 
@@ -43,13 +44,10 @@ class Logger:
         self.logger.addHandler(th)
 
     def _set_dir_(self):
-        path = os.path.dirname(os.path.realpath(__file__))
-        log_path = os.path.join(path, LOGGING_DIR)
+        if not os.path.exists(LOGGING_DIR):
+            os.makedirs(LOGGING_DIR)
 
-        if not os.path.exists(log_path):
-            os.makedirs(log_path)
-
-        logfile = os.path.join(log_path, LOGGING_NAME)
+        logfile = os.path.join(LOGGING_DIR, LOGGING_NAME)
         return logfile
 
 
