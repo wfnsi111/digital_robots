@@ -2,8 +2,6 @@ from sqlalchemy.orm import Session
 
 from db_mysql.db_models import RobotSkill
 
-import os
-
 
 def create_skill(db: Session, user_id, skill_name, skill_id, description, params, other):
     skill = RobotSkill(user_id=user_id, skill_name=skill_name, skill_id=skill_id, description=description,

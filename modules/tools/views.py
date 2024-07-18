@@ -171,4 +171,7 @@ async def completions2(request: ChatCompletionRequest, db: Session = Depends(get
 @router.get("/identify", response_model=IdentifyToolResponse, summary="确认参数")
 def identify_tool(user_id: int = 1):
     tool_params = eval_tool.get(user_id)
-    return tool_params
+    if tool_params:
+        return tool_params
+    else:
+        raise HTTPException(status_code=500, detail="技能参数不存在")

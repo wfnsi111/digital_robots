@@ -86,7 +86,7 @@ if __name__ == "__main__":
     import platform
     if platform.system().lower() == "windows":
         # uvicorn.run('main:app', host="0.0.0.0", port=8888)
-        uvicorn.run('main:app', host="192.168.3.28", port=8888)
+        uvicorn.run('main:app', host="192.168.3.28", port=8888, reload=True)
     else:
         HOST = bind.split(":")[0]
         uvicorn.run('main:app', host=HOST, port=8888)
