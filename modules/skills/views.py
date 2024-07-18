@@ -3,19 +3,23 @@ from sqlalchemy.orm import Session
 from .crud import skill_crud
 from db_mysql.session import get_db
 from .schema_models import *
-
+from mylog.log import logger
 import json
-
 
 router = APIRouter()
 
 
 @router.post("/create", summary="创建技能")
 async def create_skill(request: SkillModel, db: Session = Depends(get_db)):
-    skill = skill_crud.create_skill(db, request.user_id, request.skill_name, request.skill_id, request.description,
-                                    request.params, request.other)
+    try:
+        skill = skill_crud.create_skill(db, request.user_id, request.skill_name, request.skill_id, request.description,
+                                        request.params, request.other)
 
-    return skill
+        logger.info(f'{request.user_id} successfully created skill: {request.skill_name}.')
+        return skill
+    except Exception as e:
+        logger.error(f'{request.user_id} failed to create skill: {request.skill_name}.')
+        raise
 
 
 @router.get("/list", response_model=list[SkillModel], summary="技能库列表")

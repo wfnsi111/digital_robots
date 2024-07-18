@@ -6,7 +6,6 @@ DEBUG = True
 # DEBUG = False
 
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
-HOST = '192.168.1.56'
 
 if platform.system().lower() == 'windows':
     embedding_model_path = "D:/PycharmProjects/text2vec-bge-large-chinese"
@@ -25,7 +24,7 @@ CHROMA_CONFIG = {
 
 # mysql 配置
 MYSQL_CONFIG = {
-    'host': HOST,
+    'host': '192.168.3.56',
     'port': 3306,
     'username': 'root',
     'password': parse.quote_plus('Qfgn123@'),

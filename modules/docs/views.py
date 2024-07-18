@@ -46,9 +46,9 @@ async def delete_documents(request: DeleteDocumentsRequest, db: Session = Depend
 @router.post("/upload", response_model=AddDocumentsResponse, summary='上传文档')
 async def upload_documents(digital_role: str = Form(), files: List[UploadFile] = File(...),
                            db: Session = Depends(get_db)):
+    file_list = []
+    docs_path = CHROMA_CONFIG["doc_source"]
     try:
-        file_list = []
-        docs_path = CHROMA_CONFIG["doc_source"]
         for i in files:
             filename = os.path.join(docs_path, i.filename)
             file_list.append(filename)
@@ -65,14 +65,15 @@ async def upload_documents(digital_role: str = Form(), files: List[UploadFile] =
         docs_crud.upload_docs(db, fileinfo["file_list"], fileinfo["digital_role"], fileinfo["attribute"],
                               fileinfo["user_id"], file_status='成功')
         knowledge_func.add_docs(fileinfo)  # 添加知识库
-
+        logger.info(f'{file_list}文件上传成功')
         return AddDocumentsResponse(result='ok')
     except Exception as e:
+        logger.error(f'{file_list}文件上传失败')
         logger.error(e)
         return AddDocumentsResponse(result='error')
 
 
-@router.post("/query", summary="查询内容")
+@router.post("/query", summary="单独查询知识库")
 async def query_documents(request: QueryDocumentsRequest):
     prompt = request.prompt
     k = request.k
@@ -89,13 +90,7 @@ async def query_documents(request: QueryDocumentsRequest):
             {'user_id': 1},
         ]
     }
-    print(filter)
 
     knowledge_info = knowledge_func.similarity_search(prompt, k=k, filter=filter)
 
     return {'msg': knowledge_info}
-
-
-@router.post("/test", summary="test")
-async def query_documents(test: str):
-    return {'msg': test}

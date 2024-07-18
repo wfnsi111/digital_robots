@@ -129,15 +129,17 @@ async def run_conversation(user_id, **params):
 async def completions2(request: ChatCompletionRequest, db: Session = Depends(get_db)):
     user_id = request.user_id
     digital_role = request.digital_role
+    query = request.query
     tools = get_tools_info(user_id, db)
     # tools = get_tools()
     model = "chatglm3-6b"
     stream = False
-    query = request.query
-    messages_list = messages_history.get(user_id, [])
-    if query.strip() == 'clear':
-        messages_list = []
 
+    if query.strip().lower() == 'clear':
+        messages_history[user_id] = []
+        return '你好'
+
+    messages_list = messages_history.get(user_id, [])
     if not messages_list:
         descriptions = [skill['description'] for skill in tools.values()]
         descriptions_str = '【' + '】，【'.join(descriptions) + '】'

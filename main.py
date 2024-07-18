@@ -1,5 +1,6 @@
 import uvicorn
 import torch
+import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,14 +12,37 @@ from fastapi.openapi.docs import (
     get_swagger_ui_oauth2_redirect_html
 )
 from modules import api_router
+from mylog.log import logger
+from datetime import datetime
+from config.config import CHROMA_CONFIG
+from gunicorn_conf import bind
+
+
+def clear_docs():
+    # 清理本地知识库文档
+    folder_path = CHROMA_CONFIG['doc_source']
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        try:
+            os.unlink(file_path)
+        except Exception as e:
+            logger.error(f'Failed to delete {file_path}. Reason: {e}')
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info('=====================================================================================')
+    logger.info(f'start server: {bind} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
     yield
+    logger.info(f'end server: {bind} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+
+    # 释放内存，gpu
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
         torch.cuda.ipc_collect()
+
+    # 清理本地知识库文档
+    clear_docs()
 
 
 # Set up limit request time
@@ -37,6 +61,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 指定主路由
 app.include_router(api_router, prefix='/v1/api')
 
 
@@ -58,12 +83,10 @@ async def swagger_ui_redirect():
 
 
 if __name__ == "__main__":
-    # uvicorn.run(app, host="0.0.0.0", port=8080)
     import platform
-    from config.config import HOST
-
     if platform.system().lower() == "windows":
         # uvicorn.run('main:app', host="0.0.0.0", port=8888)
         uvicorn.run('main:app', host="192.168.3.28", port=8888)
     else:
+        HOST = bind.split(":")[0]
         uvicorn.run('main:app', host=HOST, port=8888)
