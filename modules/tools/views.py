@@ -174,4 +174,5 @@ def identify_tool(user_id: int = 1):
     if tool_params:
         return tool_params
     else:
-        raise HTTPException(status_code=500, detail="技能参数不存在")
+        # raise HTTPException(status_code=500, detail="技能参数不存在")
+        return {}

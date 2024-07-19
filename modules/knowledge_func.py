@@ -4,8 +4,6 @@ from config.config import CHROMA_CONFIG
 from datetime import datetime
 import os
 from typing import List
-from multiprocessing import Pool
-from tqdm import tqdm
 from langchain_community.document_loaders import (
     CSVLoader, EverNoteLoader,
     PDFMinerLoader, TextLoader,
@@ -16,9 +14,6 @@ from langchain_community.document_loaders import (
 )
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
-
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
 
 LOADER_MAPPING = {
     ".csv": (CSVLoader, {}), ".doc": (UnstructuredWordDocumentLoader, {}),
