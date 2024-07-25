@@ -168,7 +168,7 @@ async def completions2(request: ChatCompletionRequest, db: Session = Depends(get
     return reply
 
 
-@router.get("/identify", response_model=IdentifyToolResponse, summary="确认参数")
+@router.get("/identify", summary="确认参数")
 def identify_tool(user_id: int = 1):
     tool_params = eval_tool.get(user_id)
     if tool_params:
