@@ -36,7 +36,7 @@ DEFAULT_PING_INTERVAL = 1000
 
 # set LLM path
 # MODEL_PATH = os.environ.get('MODEL_PATH', '/home/work/chatglm3-2/chatglm3-6b')
-MODEL_PATH = '/home/work/chatglm3-2/chatglm3-6b'
+MODEL_PATH = '/home/work/models/chatglm3-6b'
 
 TOKENIZER_PATH = os.environ.get("TOKENIZER_PATH", MODEL_PATH)
 

@@ -1,5 +1,6 @@
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+# from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from config.config import CHROMA_CONFIG
 from datetime import datetime
 import os
@@ -89,7 +90,7 @@ def add_docs(fileinfo):
 
     print(f"Creating embeddings. May take some minutes...")
     chroma_db = Chroma.from_documents(texts, embedding_function, persist_directory=CHROMA_CONFIG['db_source'])
-    chroma_db.persist()
+    # chroma_db.persist()
     chroma_db = None
 
     return 'ok'
