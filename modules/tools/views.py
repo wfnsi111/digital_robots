@@ -153,7 +153,7 @@ async def completions2(request: ChatCompletionRequest,
             },
             {
                 "role": "user",
-                "content": '所有信息，必须从对话中提取。不能胡乱编造。必须调用RPA工具执行任务'
+                "content": '所有信息，必须从对话中提取。不能胡乱编造。你必须每次对话调用rpa工具'
             },
         ]
         messages_list.extend(system_chat)

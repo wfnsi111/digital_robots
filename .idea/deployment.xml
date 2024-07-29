@@ -12,7 +12,7 @@
       <paths name="3.56">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/work/chatglm3-2/digital_robots" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/work/projects/digital_robots" local="$PROJECT_DIR$" web="/" />
           </mappings>
           <excludedPaths>
             <excludedPath local="true" path="$PROJECT_DIR$/.idea" />
