@@ -65,7 +65,7 @@ async def login(username: str = Form(...), password: str = Form(...), db: Sessio
 
 """
 请求头token 格式：Authorization: Bearer + 空格 + token
-#Authorization: Bearer testgfgrtrelllfkdfjalenzzz1313131
+Authorization: Bearer testgfgrtrelllfkdfjalenzzz1313131
 
 
 # 通过依赖注入获取用户信息
