@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from modules.docs.crud import docs_crud
 from db_mysql.session import get_db
 from config.config import CHROMA_CONFIG
+from modules.user.views import get_current_active_user
 from .schema_models import *
 from .. import knowledge_func
 import os
@@ -11,13 +12,13 @@ import os
 from mylog.log import logger
 
 router = APIRouter()
+# router = APIRouter(dependencies=[Depends(verify_token)])    # 验证token
 
 
 @router.get("/list", response_model=ListDocumentsResponse, summary="知识库列表")
-async def list_documents(digital_role: str = None, db: Session = Depends(get_db)):
-    user_id = 1
+async def list_documents(digital_role: str = None, db: Session = Depends(get_db), user=Depends(get_current_active_user)):
     docs_list = []
-    docs = docs_crud.list_docs(db, user_id=user_id, digital_role=digital_role)
+    docs = docs_crud.list_docs(db, user_id=user.id, digital_role=digital_role)
     for document in docs:
         docs_list.append(
             {
@@ -32,20 +33,26 @@ async def list_documents(digital_role: str = None, db: Session = Depends(get_db)
 
 
 @router.post("/delete", response_model=DeleteDocumentsResponse, summary="删除文档")
-async def delete_documents(request: DeleteDocumentsRequest, db: Session = Depends(get_db)):
+async def delete_documents(request: DeleteDocumentsRequest, db: Session = Depends(get_db), user=Depends(get_current_active_user)):
     # user_id = request.user_id
     doc_id = request.doc_id
     filename = request.filename
     digital_role = request.digital_role
+    # 删除向量数据库数据
+    res = knowledge_func.delete_docs(user, filename=filename, digital_role=digital_role)
+    if res == 'no data':
+        return DeleteDocumentsResponse(result=res)
 
-    res = knowledge_func.delete_docs(doc_id, filename=filename, digital_role=digital_role)  # 删除向量数据库数据
-    res = docs_crud.delete_docs(db, doc_id)  # 删除mysql数据库数据
+    # 删除mysql数据库数据
+    res = docs_crud.delete_docs(db, doc_id)
     return DeleteDocumentsResponse(result=res)
 
 
 @router.post("/upload", response_model=AddDocumentsResponse, summary='上传文档')
-async def upload_documents(digital_role: str = Form(), files: List[UploadFile] = File(...),
-                           db: Session = Depends(get_db)):
+async def upload_documents(digital_role: str = Form(),
+                           files: List[UploadFile] = File(...),
+                           db: Session = Depends(get_db),
+                           user=Depends(get_current_active_user)):
     file_list = []
     docs_path = CHROMA_CONFIG["doc_source"]
     try:
@@ -59,7 +66,7 @@ async def upload_documents(digital_role: str = Form(), files: List[UploadFile] =
             "file_list": file_list,
             'digital_role': digital_role,
             'attribute': 'knowledge',
-            'user_id': 1
+            'user_id': user.id
         }
 
         docs_crud.upload_docs(db, fileinfo["file_list"], fileinfo["digital_role"], fileinfo["attribute"],
@@ -74,7 +81,7 @@ async def upload_documents(digital_role: str = Form(), files: List[UploadFile] =
 
 
 @router.post("/query", summary="单独查询知识库")
-async def query_documents(request: QueryDocumentsRequest):
+async def query_documents(request: QueryDocumentsRequest, user=Depends(get_current_active_user)):
     prompt = request.prompt
     k = request.k
     # filter = {
@@ -87,7 +94,7 @@ async def query_documents(request: QueryDocumentsRequest):
         "$and": [
             {'digital_role': request.digital_role},
             {'attribute': 'knowledge'},
-            {'user_id': 1},
+            {'user_id': user.id},
         ]
     }
 

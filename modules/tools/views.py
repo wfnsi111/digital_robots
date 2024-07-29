@@ -2,18 +2,20 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from .crud import tools_crud
 from db_mysql.session import get_db
+from modules.user.views import get_current_active_user
 from .schema_models import *
 from openai import AsyncOpenAI
 from colorama import init
 from mylog.log import logger
+from gunicorn_conf import bind
 
 import json
 import traceback
 import requests
 
 router = APIRouter()
+# router = APIRouter(dependencies=[Depends(verify_token)])    # 验证token
 
-from gunicorn_conf import bind
 
 base_url = f"http://{bind}/v1/api"
 
@@ -126,12 +128,13 @@ async def run_conversation(user_id, **params):
 
 
 @router.post("/completions2", summary="工具对话")
-async def completions2(request: ChatCompletionRequest, db: Session = Depends(get_db)):
-    user_id = request.user_id
+async def completions2(request: ChatCompletionRequest,
+                       db: Session = Depends(get_db),
+                       user=Depends(get_current_active_user)):
+    user_id = user.id
     digital_role = request.digital_role
     query = request.query
     tools = get_tools_info(user_id, db)
-    # tools = get_tools()
     model = "chatglm3-6b"
     stream = False
 
@@ -150,7 +153,7 @@ async def completions2(request: ChatCompletionRequest, db: Session = Depends(get
             },
             {
                 "role": "user",
-                "content": '所有信息，必须从对话中提取。不能胡乱编造。'
+                "content": '所有信息，必须从对话中提取。不能胡乱编造。必须调用RPA工具执行任务'
             },
         ]
         messages_list.extend(system_chat)
@@ -169,7 +172,8 @@ async def completions2(request: ChatCompletionRequest, db: Session = Depends(get
 
 
 @router.get("/identify", summary="确认参数")
-def identify_tool(user_id: int = 1):
+def identify_tool(user=Depends(get_current_active_user)):
+    user_id = user.id
     tool_params = eval_tool.get(user_id)
     if tool_params:
         return tool_params

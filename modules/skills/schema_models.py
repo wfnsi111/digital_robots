@@ -17,7 +17,6 @@ class SkillModelParam(BaseModel):
 
 class SkillModel(BaseModel):
     id: Optional[int] = None
-    user_id: int = 1
     skill_name: str  # RPA技能
     skill_id: str  # 技能安装id
     description: str  # 技能描述

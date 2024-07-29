@@ -37,4 +37,3 @@ def delete_docs(db: Session, doc_id):
         db.delete(one)
         db.commit()
         return 'ok'
-    raise

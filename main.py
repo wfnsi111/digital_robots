@@ -31,10 +31,10 @@ def clear_docs():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info('=====================================================================================')
-    logger.info(f'start server: {bind} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+    logger.debug('=====================================================================================')
+    logger.debug(f'start server: {bind} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
     yield
-    logger.info(f'end server: {bind} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+    logger.debug(f'end server: {bind} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
 
     # 释放内存，gpu
     if torch.cuda.is_available():
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     import platform
     if platform.system().lower() == "windows":
         # uvicorn.run('main:app', host="0.0.0.0", port=8888)
-        uvicorn.run('main:app', host="192.168.3.28", port=8888, reload=True)
+        uvicorn.run('main:app', host="192.168.3.28", port=8888)
     else:
         HOST = bind.split(":")[0]
         uvicorn.run('main:app', host=HOST, port=8888)

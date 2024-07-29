@@ -9,7 +9,6 @@ from datetime import datetime
 
 
 class ChatCompletionRequest(BaseModel):
-    user_id: int = 1
     query: str
     digital_role: Optional[str] = 'RPA Robot'
 

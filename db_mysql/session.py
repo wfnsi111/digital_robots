@@ -1,7 +1,7 @@
 import os
 from contextlib import contextmanager
 from typing import Generator
-
+# from contextvars import ContextVar
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from config.config import MYSQL_CONFIG
@@ -67,8 +67,13 @@ def get_db_connect() -> Generator:
             conn.close()
 
 
-# 逆向工程 自动生成模型文件
+# db_session: ContextVar[Session] = ContextVar('db_session')
+
+
 if __name__ == '__main__':
+    # 逆向工程 自动生成模型文件
     tables = ["knowledges", "user", "robot_skills"]
-    os.system(
-        f'sqlacodegen --tables {",".join(tables)} {DB_URI} > db_models.py')
+    os.system(f'sqlacodegen --tables {",".join(tables)} {DB_URI} > db_models.py')
+
+    # 根据模型文件 生成对应的数据库表
+    # Base.metadata.create_all(engine)

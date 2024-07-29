@@ -43,12 +43,12 @@ class User(Base):
     __tablename__ = 'user'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(255))
-    account = Column(String(255))
+    username = Column(String(255))
     password = Column(String(255))
     email = Column(String(255))
     telephone = Column(String(255))
     token = Column(String(255))
+    activate = Column(ENUM('1', '0'), server_default=text("'1'"), comment='1.可用， 0.不可用')
     other = Column(String(255))
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"), comment='创建时间')
     update_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"), comment='更新时间')

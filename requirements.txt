@@ -27,11 +27,13 @@ tiktoken>=0.6.0
 langchain>=0.2.1
 langchain_community>=0.2.0
 langchainhub>=0.1.15
+langchain-huggingface
 arxiv>=2.1.0
 
 chromadb
 SQLAlchemy== 1.4.52
 sqlacodegen
 pymysql==1.1.1
-
-
+python-docx
+openpyxl
+python-multipart

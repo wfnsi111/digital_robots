@@ -16,6 +16,8 @@ from langchain_community.document_loaders import (
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 
+from mylog.log import logger
+
 LOADER_MAPPING = {
     ".csv": (CSVLoader, {}), ".doc": (UnstructuredWordDocumentLoader, {}),
     ".docx": (UnstructuredWordDocumentLoader, {}),
@@ -96,15 +98,26 @@ def add_docs(fileinfo):
     return 'ok'
 
 
-def delete_docs(doc_id=None, digital_role=None, attribute=None, filename=None):
+def delete_docs(user, filename, digital_role):
     # 向量数据库-删除
     try:
-        result = vector.get(where={"filename": filename})
+        filter = {
+            "$and": [
+                {'digital_role': digital_role},
+                {'filename': filename},
+                {'user_id': user.id},
+            ]
+        }
+
+        result = vector.get(where=filter)
         if result['ids']:
             vector.delete(result['ids'])
+            logger.info(f"User:{user.username} Deleted {filename} documents")
             return 'ok'
+        logger.error(f"deleted error, no documents found")
+        return 'no data'
     except Exception as e:
-        print(e)
+        logger.error(e)
         raise
 
 

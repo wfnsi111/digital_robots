@@ -1,9 +1,10 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi import HTTPException, Response
 
 from loguru import logger
 from transformers import AutoTokenizer, AutoModel
 from sse_starlette.sse import EventSourceResponse
+from modules.user.views import get_current_active_user
 
 from .utils import process_response, generate_chatglm3, generate_stream_chatglm3
 from .. import knowledge_func
@@ -19,6 +20,7 @@ tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_PATH, trust_remote_code=True
 model = AutoModel.from_pretrained(MODEL_PATH, trust_remote_code=True, device_map="auto").eval()
 
 router = APIRouter()
+# router = APIRouter(dependencies=[Depends(verify_token)])    # 验证token
 
 
 @router.get("/health")
@@ -38,7 +40,7 @@ async def list_models():
 
 
 @router.post("/completions", response_model=ChatCompletionResponse, summary='对话接口')
-async def create_chat_completion(request: ChatCompletionRequest):
+async def create_chat_completion(request: ChatCompletionRequest, user=Depends(get_current_active_user)):
     global model, tokenizer
 
     if len(request.messages) < 1 or request.messages[-1].role == "assistant":
@@ -47,7 +49,7 @@ async def create_chat_completion(request: ChatCompletionRequest):
     messages = request.messages
 
     if request.digital_role not in ('General Robot', 'RPA Robot'):
-        get_knowledge_info(messages, request.k, request.digital_role)
+        get_knowledge_info(messages, request.k, request.digital_role, user.id)
 
         # 保留10条聊天记录
         if len(messages) > 20:
@@ -350,13 +352,13 @@ def contains_custom_function(value: str) -> bool:
     return value and 'get_' in value
 
 
-def get_knowledge_info(messages, k, digital_role):
+def get_knowledge_info(messages, k, digital_role, user_id):
     prompt = messages[-1].content
     filter = {
         "$and": [
             {'digital_role': digital_role},
             {'attribute': 'knowledge'},
-            {'user_id': 1},
+            {'user_id': user_id},
         ]
     }
     knowledge_info = knowledge_func.similarity_search(prompt, k, filter)

@@ -36,7 +36,6 @@ class ListDocumentsResponse(BaseModel):
 
 
 class DeleteDocumentsRequest(BaseModel):
-    # user_id: Optional[int] = 1
     doc_id: int
     filename: str
     digital_role: str
