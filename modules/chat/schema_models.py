@@ -77,7 +77,7 @@ class ChatCompletionRequest(BaseModel):
     stream: Optional[bool] = False
     tools: Optional[Union[dict, List[dict]]] = None
     repetition_penalty: Optional[float] = 1.1
-    k: Optional[int] = 3
+    k: Optional[int] = 5
     digital_role: Optional[str] = 'General Robot'
 
 

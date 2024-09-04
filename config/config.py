@@ -5,6 +5,10 @@ import platform
 DEBUG = True
 # DEBUG = False
 
+# 模型对话接口
+MODEL_BASE_URL = "http://192.168.3.56:8886/v1"
+TOKEN = 'akanggfgrtrelllfkdfjalenzzz1313133'
+
 basedir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 if platform.system().lower() == 'windows':
@@ -23,13 +27,24 @@ CHROMA_CONFIG = {
 }
 
 # mysql 配置
-MYSQL_CONFIG = {
-    'host': '192.168.3.56',
-    'port': 3306,
-    'username': 'root',
-    'password': parse.quote_plus('Qfgn123@'),
-    'db': 'digital_robots',
-}
+from gunicorn_conf import bind
+
+if '192.168.1.56' in bind:
+    MYSQL_CONFIG = {
+        'host': '192.168.1.56',
+        'port': 3306,
+        'username': 'root',
+        'password': parse.quote_plus('Qfgn123@'),
+        'db': 'digital_robots_test',
+    }
+else:
+    MYSQL_CONFIG = {
+        'host': '192.168.3.56',
+        'port': 3306,
+        'username': 'root',
+        'password': parse.quote_plus('Qfgn123@'),
+        'db': 'digital_robots',
+    }
 
 # Set up limit request time
 DEFAULT_PING_INTERVAL = 1000

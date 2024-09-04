@@ -40,9 +40,6 @@ async def delete_documents(request: DeleteDocumentsRequest, db: Session = Depend
     digital_role = request.digital_role
     # 删除向量数据库数据
     res = knowledge_func.delete_docs(user, filename=filename, digital_role=digital_role)
-    if res == 'no data':
-        return DeleteDocumentsResponse(result=res)
-
     # 删除mysql数据库数据
     res = docs_crud.delete_docs(db, doc_id)
     return DeleteDocumentsResponse(result=res)
@@ -69,9 +66,9 @@ async def upload_documents(digital_role: str = Form(),
             'user_id': user.id
         }
 
+        knowledge_func.add_docs(fileinfo)  # 添加知识库
         docs_crud.upload_docs(db, fileinfo["file_list"], fileinfo["digital_role"], fileinfo["attribute"],
                               fileinfo["user_id"], file_status='成功')
-        knowledge_func.add_docs(fileinfo)  # 添加知识库
         logger.info(f'{file_list}文件上传成功')
         return AddDocumentsResponse(result='ok')
     except Exception as e:

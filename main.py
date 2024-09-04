@@ -88,5 +88,5 @@ if __name__ == "__main__":
         # uvicorn.run('main:app', host="0.0.0.0", port=8888)
         uvicorn.run('main:app', host="192.168.3.28", port=8888)
     else:
-        HOST = bind.split(":")[0]
-        uvicorn.run('main:app', host=HOST, port=8888)
+        HOST, PORT = bind.split(":")
+        uvicorn.run('main:app', host=HOST, port=int(PORT))
