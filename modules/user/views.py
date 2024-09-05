@@ -86,4 +86,3 @@ async def login(username: str = Form(...), password: str = Form(...), db: Sessio
 def test(user=Depends(get_current_active_user)):
     return user
 """
-

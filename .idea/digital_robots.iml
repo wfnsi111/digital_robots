@@ -6,7 +6,6 @@
     </content>
     <orderEntry type="jdk" jdkName="Python 3.11 (digital_robots) (2)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="digital_robots_36" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="format" value="PLAIN" />

@@ -40,6 +40,9 @@ async def delete_documents(request: DeleteDocumentsRequest, db: Session = Depend
     digital_role = request.digital_role
     # 删除向量数据库数据
     res = knowledge_func.delete_docs(user, filename=filename, digital_role=digital_role)
+    if res == 'no data':
+        return DeleteDocumentsResponse(result=res)
+
     # 删除mysql数据库数据
     res = docs_crud.delete_docs(db, doc_id)
     return DeleteDocumentsResponse(result=res)
