@@ -1,5 +1,5 @@
 # coding: utf-8
-from sqlalchemy import Column, Integer, String, TIMESTAMP, text
+from sqlalchemy import Column, Integer, String, TIMESTAMP, text, TEXT
 from sqlalchemy.dialects.mysql import ENUM, VARCHAR
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -21,7 +21,8 @@ class Knowledge(Base):
     file_status = Column(String(255))
     other = Column(VARCHAR(255))
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"), comment='创建时间')
-    update_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"), comment='更新时间')
+    update_time = Column(TIMESTAMP, nullable=False,
+                         server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"), comment='更新时间')
 
 
 class RobotSkill(Base):
@@ -36,7 +37,8 @@ class RobotSkill(Base):
     activate = Column(ENUM('1', '0'), server_default=text("'1'"), comment='1.可用， 0.不可用')
     other = Column(String(255))
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"), comment='创建时间')
-    update_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"), comment='更新时间')
+    update_time = Column(TIMESTAMP, nullable=False,
+                         server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"), comment='更新时间')
 
 
 class User(Base):
@@ -51,4 +53,23 @@ class User(Base):
     activate = Column(ENUM('1', '0'), server_default=text("'1'"), comment='1.可用， 0.不可用')
     other = Column(String(255))
     create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"), comment='创建时间')
-    update_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"), comment='更新时间')
+    update_time = Column(TIMESTAMP, nullable=False,
+                         server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"), comment='更新时间')
+
+
+class ChatHistory(Base):
+    __tablename__ = 'chat_history'
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer)
+    query_content = Column(String(255))
+    system = Column(TEXT(255))
+    answer = Column(TEXT(255))
+    tools = Column(TEXT(255))
+    prompt = Column(TEXT(255))
+    model = Column(String(255))
+    digital_role = Column(String(255))
+    other = Column(String(255))
+    create_time = Column(TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"), comment='创建时间')
+    update_time = Column(TIMESTAMP, nullable=False,
+                         server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"), comment='更新时间')

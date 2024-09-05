@@ -1,14 +1,18 @@
+import json
+
 from fastapi import APIRouter, Depends
 
 from modules.user.views import get_current_active_user
 from config.config import MODEL_BASE_URL, TOKEN
 from modules import knowledge_func
 from openai import AsyncOpenAI
-
+from .crud import chat_crud
 from .schema_models import *
+from sqlalchemy.orm import Session
+from db_mysql.session import get_db
+from mylog.log import logger
 
 router = APIRouter()
-
 
 client = AsyncOpenAI(
     base_url=MODEL_BASE_URL,
@@ -45,14 +49,18 @@ def get_knowledge_info(messages, k, digital_role, user_id):
                 {prompt}
             *************************
             """
+    return knowledge_info
 
 
 @router.post("/completions", response_model=ChatCompletionResponse, summary='对话接口')
-async def create_chat_completion(request: ChatCompletionRequest, user=Depends(get_current_active_user)):
+async def create_chat_completion(request: ChatCompletionRequest, user=Depends(get_current_active_user),
+                                 db: Session = Depends(get_db)):
     messages = request.messages
+    query = messages[-1].content
+    knowledge_info = ''
 
     if request.digital_role not in ('General Robot', 'RPA Robot'):
-        get_knowledge_info(messages, request.k, request.digital_role, user.id)
+        knowledge_info = get_knowledge_info(messages, request.k, request.digital_role, user.id)
 
         # 保留10条聊天记录
         if len(messages) > 20:
@@ -81,4 +89,18 @@ async def create_chat_completion(request: ChatCompletionRequest, user=Depends(ge
         )
 
     response = await client.chat.completions.create(**params)
+
+    # 存放聊天记录
+    tools = request.tools
+    try:
+        tools = json.dumps(tools)
+    except Exception as e:
+        logger.error(tools)
+        logger.error(e)
+    answer = response.choices[0].message.content
+    try:
+        chat_crud._save_msg(db, user.id, request.digital_role, request.model, tools, query, answer, knowledge_info)
+    except Exception as e:
+        logger.error(e)
+
     return response

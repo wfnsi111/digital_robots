@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from .crud import tools_crud
 from db_mysql.session import get_db
 from modules.user.views import get_current_active_user
+from modules.chat.crud import chat_crud
 from .schema_models import *
 from openai import AsyncOpenAI
 from colorama import init
@@ -13,6 +14,8 @@ import json
 import traceback
 import requests
 
+from modules.user.views import oauth2_scheme
+
 router = APIRouter()
 # router = APIRouter(dependencies=[Depends(verify_token)])    # 验证token
 
@@ -20,10 +23,6 @@ router = APIRouter()
 base_url = f"http://{bind}/v1/api"
 
 init(autoreset=True)
-client = AsyncOpenAI(
-    base_url=base_url,
-    api_key="xxx"
-)
 
 messages_history = {}
 
@@ -78,9 +77,13 @@ def post_api(params):
     raise
 
 
-async def run_conversation(user_id, **params):
+async def run_conversation(user_id, token, **params):
     max_retry = 5
     stream = params['stream']
+    client = AsyncOpenAI(
+        base_url=base_url,
+        api_key=token
+    )
     response = await client.chat.completions.create(**params)
     # response = post_api(params)
 
@@ -130,7 +133,10 @@ async def run_conversation(user_id, **params):
 @router.post("/completions2", summary="工具对话")
 async def completions2(request: ChatCompletionRequest,
                        db: Session = Depends(get_db),
-                       user=Depends(get_current_active_user)):
+                       user=Depends(get_current_active_user),
+                       token: str = Depends(oauth2_scheme)
+                       ):
+    # api_key = request.headers.get("Authorization")
     user_id = user.id
     digital_role = request.digital_role
     query = request.query
@@ -165,9 +171,12 @@ async def completions2(request: ChatCompletionRequest,
     params = dict(model=model, messages=messages_list, stream=stream)
     if tools:
         params["tools"] = tools
-
+        tools = json.dumps(tools)
+    else:
+        tools = '{}'
     # 调用工具，获取对话返回值
-    reply = await run_conversation(user_id, **params)
+    reply = await run_conversation(user_id, token, **params)
+    chat_crud._save_msg(db, user_id, digital_role, model, tools, query, reply, '', messages_list[0]['content'])
     return reply
 
 
