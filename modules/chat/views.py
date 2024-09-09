@@ -31,7 +31,7 @@ def get_knowledge_info(messages, k, digital_role, user_id):
     }
     knowledge_info = knowledge_func.similarity_search(prompt, k, filter)
     if not knowledge_info:
-        return []
+        return '[]'
     knowledge_info = '[' + ']\n['.join(knowledge_info) + ']'
 
     messages[-1].content = f"""
@@ -57,7 +57,7 @@ async def create_chat_completion(request: ChatCompletionRequest, user=Depends(ge
                                  db: Session = Depends(get_db)):
     messages = request.messages
     query = messages[-1].content
-    knowledge_info = ''
+    knowledge_info = '[]'
 
     if request.digital_role not in ('General Robot', 'RPA Robot'):
         knowledge_info = get_knowledge_info(messages, request.k, request.digital_role, user.id)

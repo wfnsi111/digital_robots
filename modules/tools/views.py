@@ -8,11 +8,11 @@ from .schema_models import *
 from openai import AsyncOpenAI
 from colorama import init
 from mylog.log import logger
-from gunicorn_conf import bind
-
+from config.resp import resp_error_json, resp_success_json, respJsonBase
+from config import error_code
+from config.config import MODEL_BASE_URL
 import json
 import traceback
-import requests
 
 from modules.user.views import oauth2_scheme
 
@@ -20,13 +20,12 @@ router = APIRouter()
 # router = APIRouter(dependencies=[Depends(verify_token)])    # 验证token
 
 
-base_url = f"http://{bind}/v1/api"
-
 init(autoreset=True)
 
 messages_history = {}
 
 eval_tool = {}
+execute_command = '立即执行'
 
 
 def get_tools_info(user_id, db: Session = Depends(get_db)):
@@ -63,25 +62,26 @@ def cum_dispatch_tool(user_id, tools, function_name, function_args):
         "skill_id": tools_info['skill_id'],
     }
     s = f"""
-    请确认你要执行RPA动作为【{function_name}】:
+    您要执行的动作为【{function_name}】:
     参数为：
-    {function_args}
+    {function_args},\n
+    确认执行，请输入：“{execute_command}”
     """
     return s
 
 
-def post_api(params):
-    response = requests.post(f"{base_url}/chat/completions", json=params)
-    if response.status_code == 200:
-        return response.content.decode("utf-8")
-    raise
+# def post_api(params):
+#     response = requests.post(f"{base_url}/chat/completions", json=params)
+#     if response.status_code == 200:
+#         return response.content.decode("utf-8")
+#     raise
 
 
 async def run_conversation(user_id, token, **params):
     max_retry = 5
     stream = params['stream']
     client = AsyncOpenAI(
-        base_url=base_url,
+        base_url=MODEL_BASE_URL,
         api_key=token
     )
     response = await client.chat.completions.create(**params)
@@ -130,7 +130,7 @@ async def run_conversation(user_id, token, **params):
                 return reply
 
 
-@router.post("/completions2", summary="工具对话")
+@router.post("/completions2", summary="工具对话", )
 async def completions2(request: ChatCompletionRequest,
                        db: Session = Depends(get_db),
                        user=Depends(get_current_active_user),
@@ -147,6 +147,18 @@ async def completions2(request: ChatCompletionRequest,
     if query.strip().lower() == 'clear':
         messages_history[user_id] = []
         return '你好'
+
+    if query.strip().lower() == execute_command:
+        # 用户输入执行确认命名后，返回函数参数
+        tool_params = eval_tool.get(user_id, {})
+        data = {
+            "reply": tool_params,
+            "function": True
+        }
+        if tool_params:
+            return resp_success_json(data=data)
+        else:
+            return resp_error_json(error=error_code.TOOLS_NO_CHOOSE, data=data)
 
     messages_list = messages_history.get(user_id, [])
     if not messages_list:
@@ -177,15 +189,20 @@ async def completions2(request: ChatCompletionRequest,
     # 调用工具，获取对话返回值
     reply = await run_conversation(user_id, token, **params)
     chat_crud._save_msg(db, user_id, digital_role, model, tools, query, reply, '', messages_list[0]['content'])
-    return reply
+
+    data = {
+            "reply": reply,
+            "function": False
+        }
+    return resp_success_json(data=data)
 
 
-@router.get("/identify", summary="确认参数")
-def identify_tool(user=Depends(get_current_active_user)):
-    user_id = user.id
-    tool_params = eval_tool.get(user_id)
-    if tool_params:
-        return tool_params
-    else:
-        # raise HTTPException(status_code=500, detail="技能参数不存在")
-        return {}
+# @router.get("/identify", summary="确认参数")
+# def identify_tool(user=Depends(get_current_active_user)):
+#     user_id = user.id
+#     tool_params = eval_tool.get(user_id)
+#     if tool_params:
+#         return tool_params
+#     else:
+#         # raise HTTPException(status_code=500, detail="技能参数不存在")
+#         return {}

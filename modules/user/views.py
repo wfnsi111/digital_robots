@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from modules.user.crud import user_crud
 from db_mysql.session import get_db
 from .schema_models import *
+from config.resp import resp_error_json, resp_success_json
+from config import error_code
 
 router = APIRouter()
 
@@ -43,7 +45,8 @@ async def get_current_active_user(token: str = Depends(oauth2_scheme),
         )
     # return user
     if user.activate == '0':
-        raise HTTPException(status_code=400, detail="Inactive user")
+        # raise HTTPException(status_code=400, detail="Inactive user")
+        return resp_error_json(error_code.ERROR_USER_NOT_ACTIVATE)
     return user
 
 
@@ -53,7 +56,7 @@ async def login(username: str = Form(...), password: str = Form(...), db: Sessio
     password = password.strip()
     user = user_crud.get_user_by_name(db=db, username=username, password=password)
     if not user:
-        # raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect account")
+        # return resp_error_json(error_code.ERROR_USER_NOT_FOUND)
         return {
             "code": 400,
             "msg": "无效的账户",
